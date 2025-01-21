@@ -5,6 +5,8 @@ MODULE_NAME='mDenonDN-500AV'    (
 
 (***********************************************************)
 #include 'NAVFoundation.Core.axi'
+#include 'NAVFoundation.ArrayUtils.axi'
+#include 'NAVFoundation.Math.axi'
 
 /*
  _   _                       _          ___     __
@@ -162,7 +164,7 @@ DEFINE_MUTUALLY_EXCLUSIVE
 (* EXAMPLE: DEFINE_FUNCTION <RETURN_TYPE> <NAME> (<PARAMETERS>) *)
 (* EXAMPLE: DEFINE_CALL '<NAME>' (<PARAMETERS>) *)
 define_function SendStringRaw(char cPayload[]) {
-    NAVLog("'String To ', NAVConvertDPSToAscii(dvPort), '-[', cPayload, ']'")
+    NAVErrorLog(NAV_LOG_LEVEL_DEBUG, "'String To ', NAVConvertDPSToAscii(dvPort), '-[', cPayload, ']'")
     send_string dvPort, "cPayload"
 }
 
@@ -242,7 +244,7 @@ define_function Process() {
         cTemp = remove_string(cRxBuffer, "NAV_CR", 1)
 
         if (length_array(cTemp)) {
-            NAVLog("'Gathered String From ', NAVConvertDPSToAscii(dvPort), '-[', cTemp, ']'")
+            NAVErrorLog(NAV_LOG_LEVEL_DEBUG, "'Gathered String From ', NAVConvertDPSToAscii(dvPort), '-[', cTemp, ']'")
 
             cTemp = NAVStripCharsFromRight(cTemp, 1)
 
@@ -345,19 +347,19 @@ define_function Drive() {
             if (iRequiredVolume && (iRequiredVolume == iActualVolume)) { iRequiredVolume = 0; return }
             if (iRequiredMute && (iRequiredMute == iActualMute)) { iRequiredMute = 0; return }
 
-            if (iRequiredPower && (iRequiredPower <> iActualPower)) {
+            if (iRequiredPower && (iRequiredPower != iActualPower)) {
                 SetPower(iRequiredPower); iCommandLockOut = TRUE; wait 50 iCommandLockOut = FALSE; iActualPowerInitialized = FALSE; iPollSequence = GET_POWER; return
             }
 
-            if (iRequiredInput && (iActualPower == POWER_STATE_ON) && (iRequiredInput <> iActualInput)) {
+            if (iRequiredInput && (iActualPower == POWER_STATE_ON) && (iRequiredInput != iActualInput)) {
                 SetInput(iRequiredInput); iCommandLockOut = TRUE; wait 20 iCommandLockOut = FALSE; iActualInputInitialized = FALSE; iPollSequence = GET_INPUT; return
             }
 
-            if (iRequiredMute && (iActualPower == POWER_STATE_ON) && (iRequiredMute <> iActualMute)) {
+            if (iRequiredMute && (iActualPower == POWER_STATE_ON) && (iRequiredMute != iActualMute)) {
                 SetMute(iRequiredMute); iCommandLockOut = TRUE; wait 20 iCommandLockOut = FALSE; iActualMuteInitialized = FALSE; iPollSequence = GET_MUTE; return
             }
 
-            if (iRequiredSurroundMode && (iActualPower == POWER_STATE_ON) && (iRequiredSurroundMode <> iActualSurroundMode)) {
+            if (iRequiredSurroundMode && (iActualPower == POWER_STATE_ON) && (iRequiredSurroundMode != iActualSurroundMode)) {
                 SetSurroundMode(iRequiredSurroundMode); iCommandLockOut = TRUE; wait 20 iCommandLockOut = FALSE; iActualSurroundModeInitialized = FALSE; iPollSequence = GET_SURROUND_MODE; return
             }
 
@@ -388,11 +390,11 @@ data_event[dvPort] {
         send_command data.device, "'CHARDM-0'"
         send_command data.device, "'HSOFF'"
 
-        timeline_create(TL_DRIVE, iDrive, length_array(iDrive), TIMELINE_ABSOLUTE, TIMELINE_REPEAT)
+        NAVTimelineStart(TL_DRIVE, iDrive, TIMELINE_ABSOLUTE, TIMELINE_REPEAT)
     }
     string: {
         TimeOut()
-        NAVLog("'String From ', NAVConvertDPSToAscii(dvPort), '-[', data.text, ']'")
+        NAVErrorLog(NAV_LOG_LEVEL_DEBUG, "'String From ', NAVConvertDPSToAscii(dvPort), '-[', data.text, ']'")
         if(!iSemaphore) { Process() }
     }
 }
@@ -403,7 +405,7 @@ data_event[vdvObject] {
         stack_var char cCmdHeader[NAV_MAX_CHARS]
         stack_var char cCmdParam[2][NAV_MAX_CHARS]
 
-        NAVLog("'Command From ', NAVConvertDPSToAscii(data.device), '-[', data.text, ']'")
+        NAVErrorLog(NAV_LOG_LEVEL_DEBUG, "'Command From ', NAVConvertDPSToAscii(data.device), '-[', data.text, ']'")
 
         cCmdHeader = DuetParseCmdHeader(data.text)
         cCmdParam[1] = DuetParseCmdParam(data.text)

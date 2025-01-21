@@ -79,7 +79,7 @@ volatile sinteger iLevel
 volatile sinteger iOldLevel
 
 // define_connect_level
-//(vdvControl, LEVEL_VOLUME, dvTP, LEVEL_VOLUME)
+//(vdvObject, LEVEL_VOLUME, dvTP, LEVEL_VOLUME)
 
 volatile integer iBlinkerEnabled = false
 
@@ -191,7 +191,7 @@ data_event[vdvObject] {
 	stack_var char cCmdHeader[NAV_MAX_CHARS]
 	stack_var char cCmdParam[2][NAV_MAX_CHARS]
 	if (iModuleEnabled) {
-	    NAVLog(NAVFormatStandardLogMessage(NAV_STANDARD_LOG_MESSAGE_TYPE_COMMAND_FROM, data.device, data.text))
+	    NAVErrorLog(NAV_LOG_LEVEL_DEBUG, NAVFormatStandardLogMessage(NAV_STANDARD_LOG_MESSAGE_TYPE_COMMAND_FROM, data.device, data.text))
 	    cCmdHeader = DuetParseCmdHeader(data.text)
 	    cCmdParam[1] = DuetParseCmdParam(data.text)
 	    cCmdParam[2] = DuetParseCmdParam(data.text)
